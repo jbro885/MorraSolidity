@@ -1,7 +1,7 @@
 pragma solidity >=0.4.22 <0.6.0;
 /**
  * An ethereum contract for a Morra game between two people
- * Address: 0x62903D319Cd0BBB7CB4eC44906b03F4152287Dff
+ * Address: 0xCe4176fa7c01002980db1AcF54508e62A6B8e60f
  */
 contract Morra {
     struct guess {
@@ -106,12 +106,15 @@ contract Morra {
             emit CanCollect(winner, refund);
             emit CanCollect(looser, refund);
         } else {
-            uint256 sum = (guesses[0].guessedNumber + guesses[1].guessedNumber) * gamePriceUnit;
+            // cache storage variables to save gas
+            uint8 winnerGuess = guesses[winnerPlayerIndex].guessedNumber;
+            uint8 looserGuess = guesses[looserPlayerIndex].guessedNumber;
+            uint256 sum = (winnerGuess + looserGuess) * gamePriceUnit;
             // refund the sum plus any surplus from the difference between price of game and the value paid by winning player
-            uint256 refundWinner = (gamePrice - guesses[winnerPlayerIndex].guessedNumber * gamePriceUnit) + sum + REVEAL_GAS/2;
+            uint256 refundWinner = (gamePrice - winnerGuess * gamePriceUnit) + sum + REVEAL_GAS/2;
             refunds[winner] = refundWinner;
             emit CanCollect(winner, refundWinner);
-            uint256 refundLooser = (gamePrice - guesses[looserPlayerIndex].guessedNumber * gamePriceUnit) + REVEAL_GAS/2;
+            uint256 refundLooser = (gamePrice - looserGuess * gamePriceUnit) + REVEAL_GAS/2;
             assert(refundWinner+refundLooser <= balance);
             refunds[looser] = refundLooser;
             emit CanCollect(looser, refundLooser);
@@ -253,3 +256,4 @@ contract Morra {
         return value;
     }
 }
+
